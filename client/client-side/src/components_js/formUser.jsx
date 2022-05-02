@@ -3,12 +3,12 @@ import React, {useState, useEffect, useContext} from "react"
 function PlayerForm(props) {
     
     const [newWager, setNewWagers] = useState({
-        username: "Nikita",
-        game_type: "Chess",
-        website: "",
-        description: "",
-        wager_value: 0,
-        currency: "USD"
+        username: null,
+        game_type: null,
+        website: null,
+        description: null,
+        wager_value: null,
+        currency: null
     })
     const [wagers, setWagers] = useState([
         {
@@ -58,14 +58,13 @@ function PlayerForm(props) {
             }).then((data) => {
                 return data['player1'];
             }).then((obj) => {
+                let updatedPlayerData = []
                 for (const dict_obj in obj) {
                     const temp_dict = obj[dict_obj]
 
-                    let updatedPlayerData = [...playerData, temp_dict];
-
-                    setPlayerData(updatedPlayerData)
-
+                    updatedPlayerData.unshift(temp_dict);
                 }
+                setPlayerData(updatedPlayerData)
             })
         } else {
             setPlayerData([])
@@ -76,9 +75,22 @@ function PlayerForm(props) {
     function handleSubmit(e) {
         e.preventDefault();
 
-        let updatedWagers = [...wagers, newWager];
+        if (newWager.username === null && newWager.game_type === null && newWager.website === null && newWager.description === null && newWager.wager_value === null && newWager.currency === null) {
+            let updatedWagers = [...wagers, newWager];
 
-        setWagers(updatedWagers)
+            setWagers(updatedWagers)
+            setNewWagers({
+                username: "",
+                game_type: "",
+                website: "",
+                description: "",
+                wager_value: "",
+                currency: ""
+            })
+        } else {
+            setTimeout(function() { alert('Please make sure all the fields are filled in!'); }, 1);
+        }
+
     }
 
     return (
@@ -93,10 +105,10 @@ function PlayerForm(props) {
                         </ul>
                     </div>
                 }
+                <div className="games-results">
+                {playerData.length > 0 && <h4>Latest Game Results for Current Month</h4>}
                 {playerData.length > 0 && (playerData.map((current_dict) => (
-                    <div className="games-results">
-                        <h4>Latest Game Results for Current Month</h4>
-                        <ul>
+                        <ul className="ul-results">
                             <li>{Object.keys(current_dict)[0]} : {Object.values(current_dict)[0]}</li>
                             <li>{Object.keys(current_dict)[1]} : {Object.values(current_dict)[1]}</li>
                             <li>{Object.keys(current_dict)[2]} : {Object.values(current_dict)[2]}</li>
@@ -105,14 +117,15 @@ function PlayerForm(props) {
                             <li>{Object.keys(current_dict)[5]} : {Object.values(current_dict)[5]}</li>
                             <li>{Object.keys(current_dict)[6]} : {Object.values(current_dict)[6]}</li>
                         </ul>
-                    </div>
                 )))}
+                </div>
                 <div className='input-container ic1'>
                     <input
                     id="username"
                     className="input"
                     type="text"
                     name="username"
+                    value={newWager.username}
                     placeholder=" "
                     onChange={handleChangeAndFetch}
                     />
@@ -125,6 +138,7 @@ function PlayerForm(props) {
                     className="input"
                     type="text"
                     name="game_type"
+                    value={newWager.game_type}
                     placeholder=" "
                     onChange={handleChange}
                     />
@@ -136,8 +150,8 @@ function PlayerForm(props) {
                     id="website"
                     className="input"
                     type="text"
-                    value={newWager.website}
                     name="website"
+                    value={newWager.website}
                     placeholder=" "
                     onChange={handleChange}
                     />
@@ -150,6 +164,7 @@ function PlayerForm(props) {
                     className="input"
                     type="text"
                     name="description"
+                    value={newWager.description}
                     placeholder=" "
                     onChange={handleChange}
                     />
@@ -162,6 +177,7 @@ function PlayerForm(props) {
                     className="input"
                     type="number"
                     name="wager_value"
+                    value={newWager.wager_value}
                     placeholder=" "
                     onChange={handleChange}
                     />
@@ -174,6 +190,7 @@ function PlayerForm(props) {
                     className="input"
                     type="text"
                     name="currency"
+                    value={newWager.currency}
                     placeholder=" "
                     onChange={handleChange}
                     />
@@ -185,6 +202,7 @@ function PlayerForm(props) {
                 </button>
             </div>
             <div className="results">
+                <div className="subtitle">Active wagers below:</div>
                 {wagers.map((wager, index) => (
                     <div className="wagers-list">
                         <div className='wager'>
