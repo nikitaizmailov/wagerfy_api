@@ -5,7 +5,19 @@ from fastapi import FastAPI
 
 from chess_api import isPlayerExist, player_games_history
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Doing Data Validation
 class Item(BaseModel):
@@ -33,26 +45,17 @@ def validate_ingame_user(username: str):
 
     return {username: userExist}
 
-@app.get("/chess")
-def game_results(player1: str, player2: str, limit: Optional[int] = None):
+@app.get("/chess/{player1}")
+def game_results(player1: str, limit: Optional[int] = None):
 
     try:
         isPlayer1 = isPlayerExist(player1)
-        isPlayer2 = isPlayerExist(player2)
-        
-        if isPlayer1 == False and isPlayer2 == False:
-            raise ValueError("Both usernames do not exist.")
-        elif isPlayer1 == False and isPlayer2 == True:
-            raise ValueError(f"Username: {player1} does not exist.")
-        elif isPlayer1 == True and isPlayer2 == False:
-            raise ValueError(f"Username: {player2} does not exist.")
 
     except ValueError as e:
         return {"Error": e.args}
     else:
         player1_games_data = player_games_history({}, player1)
-        player2_games_data = player_games_history({}, player2)
+        
         return {
             "player1": player1_games_data,
-            "player2": player2_games_data
         }

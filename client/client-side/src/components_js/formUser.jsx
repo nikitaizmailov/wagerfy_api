@@ -21,8 +21,8 @@ function PlayerForm(props) {
         },
     ])
 
-    let isPlayerExist = false;
-    const playerData = [];
+    const [isPlayerExist, setPlayerExist] = useState(false)
+    const [playerData, setPlayerData] = useState([]);
 
     function handleChange(e) {
         const {name, value} = e.target
@@ -32,22 +32,44 @@ function PlayerForm(props) {
         }));
     }
 
-    function handleChangeAndFetch(e) {
+    async function handleChangeAndFetch(e) {
         const {name, value} = e.target
         setNewWagers(prevState => ({
             ...prevState,
             [name]: value
         }));
 
-        fetch(`http://127.0.0.1:8000/player_valid/${value}`).then((res) => {
+        await fetch(`http://127.0.0.1:8000/player_valid/${value}`).then((res) => {
             return res.json();
         }).then((data) => {
-            const prop = value;
-            if (prop === true) {
-                isPlayerExist = true
+            const key = Object.keys(data)[0]
+            if (data[key] === true) {
+                setPlayerExist(true)
+                console.log(data)
+                console.log(isPlayerExist)
+            } else {
+                setPlayerExist(false)
             }
-            console.log(isPlayerExist);
         })
+        
+        if (isPlayerExist === true) {
+            await fetch(`http://127.0.0.1:8000/chess/${value}`).then((res) => {
+                return res.json();
+            }).then((data) => {
+                return data['player1'];
+            }).then((obj) => {
+                for (const dict_obj in obj) {
+                    const temp_dict = obj[dict_obj]
+
+                    let updatedPlayerData = [...playerData, temp_dict];
+
+                    setPlayerData(updatedPlayerData)
+
+                }
+            })
+        } else {
+            setPlayerData([])
+        }
 
     }
 
@@ -64,6 +86,27 @@ function PlayerForm(props) {
             <div className="form">
                 <div className="form-title">Let's Create A Wager?</div>
                 <div className="form-subtitle">Input below details of your wager:</div>
+                {isPlayerExist === true && 
+                    <div className="games-results">
+                        <ul>
+                            User: {newWager.username} exist in Chess.com database.
+                        </ul>
+                    </div>
+                }
+                {playerData.length > 0 && (playerData.map((current_dict) => (
+                    <div className="games-results">
+                        <h4>Latest Game Results for Current Month</h4>
+                        <ul>
+                            <li>{Object.keys(current_dict)[0]} : {Object.values(current_dict)[0]}</li>
+                            <li>{Object.keys(current_dict)[1]} : {Object.values(current_dict)[1]}</li>
+                            <li>{Object.keys(current_dict)[2]} : {Object.values(current_dict)[2]}</li>
+                            <li>{Object.keys(current_dict)[3]} : {Object.values(current_dict)[3]}</li>
+                            <li>{Object.keys(current_dict)[4]} : {Object.values(current_dict)[4]}</li>
+                            <li>{Object.keys(current_dict)[5]} : {Object.values(current_dict)[5]}</li>
+                            <li>{Object.keys(current_dict)[6]} : {Object.values(current_dict)[6]}</li>
+                        </ul>
+                    </div>
+                )))}
                 <div className='input-container ic1'>
                     <input
                     id="username"
@@ -74,13 +117,6 @@ function PlayerForm(props) {
                     onChange={handleChangeAndFetch}
                     />
                     <div className="cut"></div>
-                    {isPlayerExist === true && 
-                        <div className="games-results">
-                            <ul>
-                                <li>User: {newWager.username} exist!</li>
-                            </ul>
-                        </div>
-                    }
                     <label for="username" class="placeholder">Your in-game username</label>
                 </div>
                 <div className='input-container ic2'>
